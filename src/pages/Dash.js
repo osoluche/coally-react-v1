@@ -6,7 +6,7 @@ import { api_url } from '../utils/environment';
 import Swal from 'sweetalert2';
 import moment from 'moment';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faCheckCircle, faClock, faClose, faEdit, faPlus, faQuestion, faQuestionCircle, faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faCalendarAlt, faCheckCircle, faClock, faClose, faEdit, faL, faPlus, faSave, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Dash = () => {
 
@@ -32,10 +32,6 @@ const Dash = () => {
 
     }, [token, navigate]);
 
-    const setLog = () => {
-        dispatch(logout());
-    }
-
     const fetchTasks = async (args = false) => {
 
         const response = await fetch(api_url + '/tasks?completed=' + args, {
@@ -46,7 +42,10 @@ const Dash = () => {
 
         const data = await response.json()
 
-        setTasks(data);
+        if (Array.isArray(data)) {
+            setTasks(data);
+        }
+
         setFilter(args ? "completed" : "pending");
     }
 
@@ -146,6 +145,49 @@ const Dash = () => {
 
     }
 
+    const deleteTask = (task) => {
+
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: "No podrá recuperar esta tarea una vez eliminada.",
+            icon: 'warning',
+            allowEscapeKey: false,
+            allowOutsideClick: false,
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminarla!',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+
+            if (result.isConfirmed) {
+
+                const response = await fetch(api_url + '/tasks/' + task._id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                    }
+                });
+
+                if (response.ok) {
+                    Swal.fire(
+                        'Eliminada!',
+                        'La tarea ha sido eliminada.',
+                        'success'
+                    );
+                    
+                    setEditingTask(null)
+                    setNewTask({ title: '', description: '' })
+                    setIsModalOpen(false)
+
+                    fetchTasks();
+                }
+            }
+        });
+
+
+    }
+
     const formatDate = (args) => {
         return moment(args).format("YYYY-MM-DD H:mm:ss");
     }
@@ -158,10 +200,11 @@ const Dash = () => {
         <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8">
             <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
                 <div className="p-4 sm:p-6 md:p-8">
+
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">Tareas de {uname}</h1>
 
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0">
-                        
+
                         <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={() => fetchTasks(false)}
@@ -212,8 +255,7 @@ const Dash = () => {
                                 </div>
                                 <button
                                     onClick={() => openEditModal(task)}
-                                    className="text-blue-500 hover:text-blue-600 text-sm sm:text-base ml-2 sm:ml-4 flex-shrink-0"
-                                >
+                                    className="text-blue-500 hover:text-blue-600 text-sm sm:text-base ml-2 sm:ml-4 flex-shrink-0">
                                     <FontAwesomeIcon icon={faEdit} /> Editar
                                 </button>
                             </li>
@@ -235,7 +277,29 @@ const Dash = () => {
             {/* Sidebar para editar tarea */}
             <div className={`fixed rounded-[10px] inset-y-0 right-0 w-full sm:w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${editingTask ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="h-full flex flex-col p-6">
-                    <h2 className="text-2xl font-bold mb-4">Editar Tarea</h2>
+
+                    <div className='flex flex-row justify-between items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0'>
+                        
+                        <h2 className="text-2xl font-bold text-green-500">Editar Tarea</h2>
+
+                        <button onClick={() => setEditingTask(null)} className='px-4 py-2 bg-gray-200 rounded hover:bg-gray-300'>
+                            <FontAwesomeIcon icon={faClose} /> Cerrar
+                        </button>
+                    </div>
+
+                    {newTask.createdAt && (
+                        <div className="mb-4">
+                            <p className="text-sm text-gray-600 mb-2">
+                                <FontAwesomeIcon icon={faCalendar} /> Creada: {formatDate(newTask.createdAt)}
+                            </p>
+
+                            {newTask.updatedAt && (
+                                <p className="text-sm text-gray-600">
+                                    <FontAwesomeIcon icon={faCalendarAlt} /> Actualizada: {formatDate(newTask.updatedAt)}
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     <input
                         type="text"
@@ -249,35 +313,21 @@ const Dash = () => {
                         placeholder="Descripción"
                         value={newTask.description}
                         onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                        className="w-full p-2 mb-4 border rounded flex-grow"
-                    ></textarea>
+                        className="w-full p-2 mb-4 border rounded flex-grow">
+                    </textarea>
 
-                    {newTask.createdAt && (
-                        <div className="mb-4">
-                            <p className="text-sm text-gray-600">
-                                Creada: {formatDate(newTask.createdAt)}
-                            </p>
-                            {newTask.updatedAt && (
-                                <p className="text-sm text-gray-600">
-                                    Última actualización: {formatDate(newTask.updatedAt)}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                    <div className="flex justify-around mt-auto">
-                        <button
-                            onClick={() => setEditingTask(null)}
-                            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-                        >
-                            <FontAwesomeIcon icon={faClose} /> Cancelar
+                    <div className="flex justify-around w-full mt-auto flex flex-col">
+
+                        <button onClick={() => deleteTask(newTask)} className="mb-3 px-4 py-2 bg-blue-500 text-white rounded bg-red-500 hover:bg-gray-300">
+                            <FontAwesomeIcon icon={faTrash} /> Eliminar
                         </button>
-                        <button
-                            onClick={saveEditedTask}
-                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
+
+                        <button onClick={saveEditedTask}            className="mb-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                             <FontAwesomeIcon icon={faSave} /> Guardar Cambios
                         </button>
+
                     </div>
+
                 </div>
             </div>
 
@@ -298,6 +348,7 @@ const Dash = () => {
                             onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                             className="w-full p-2 mb-4 border rounded h-24 sm:h-32 text-sm sm:text-base"
                         ></textarea>
+
                         <div className="flex justify-end space-x-2">
                             <button
                                 onClick={() => setIsModalOpen(false)}

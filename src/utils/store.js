@@ -1,9 +1,19 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit';
 
-// 1. Slice: Define el estado inicial y los reducers
+import { persistStore, persistReducer } from 'redux-persist';
+
+import storage from 'redux-persist/lib/storage';
+
+// Configuración de redux-persist
+const persistConfig = {
+    key: 'root',
+    storage,
+};
+
+// Slice: Define el estado inicial y los reducers
 const authSlice = createSlice({
     name: 'auth',
-    initialState: { token: null, isAuthenticated: false },
+    initialState: { token: null, isAuthenticated: false, client: null },
     reducers: {
         login: (state, action) => {
             state.token = action.payload.token;
@@ -16,18 +26,25 @@ const authSlice = createSlice({
         },
         name: (state, action) => {
             state.client = action.payload.client;
-        }
+        },
     },
 });
 
-// 2.- Exporta las acciones (login, logout)
-export const { login, logout, name } = authSlice.actions;
+// Crear persist
+const persistedReducer = persistReducer(persistConfig, authSlice.reducer);
 
-// 3. Configura el store
+// Configura el store
 const store = configureStore({
     reducer: {
-        auth: authSlice.reducer,
+        auth: persistedReducer,
     },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+        serializableCheck: false
+    }),
 });
 
-export default store;
+const persistor = persistStore(store);
+
+// Exportar
+export const { login, logout, name } = authSlice.actions;
+export { store, persistor };
