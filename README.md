@@ -45,10 +45,10 @@ Este proyecto está diseñado con **Redux** para el manejo del estado global y *
 - git clone https://github.com/osoluche/coally-react-v1.git
 - cd coally-react-v1
 
-### **2.- Instalar dependencias **
+### **2.- Instalar dependencias**
 - npm i
 
-### **3.- Iniciar la aplicacion **
+### **3.- Iniciar la aplicacion**
 - npm run start
 
 ## Funcionalidades Clave
