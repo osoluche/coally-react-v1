@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 
 import Swal from 'sweetalert2';
 
+import axios from 'axios';
+
 const Login = () => {
 
     const token = useSelector((state) => state.auth.token);
@@ -30,45 +32,38 @@ const Login = () => {
 
         try {
 
-            const response = await fetch(api_url + '/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
+            const response = await axios.post(api_url + '/login', { email, password });
 
-            if (response.ok) {
+            const data = await response.data;
 
-                const data = await response.json();
+            dispatch(login({ token: data.token }));
 
-                dispatch(login({ token: data.token }));
+            dispatch(name({ client: data.client }));
 
-                dispatch(name({client: data.client}));
+            navigate("/dashboard");
 
-                navigate("/dashboard");
+        } catch (error) {
 
-            } else {
+            const data = error.response.data;
 
-                const data = await response.json();
-
-                console.log(49, data);
-
+            if (data.errors && Array.isArray(data.errors)) {
+                
                 Swal.fire({
                     title: 'Error!',
-                    text: 'Se produjo un error al intentar iniciar sesión. ' + data.message,
+                    text: 'Se produjo un error al intentar ingresar. Por favor, inténtalo de nuevo.',
                     icon: 'error',
                     confirmButtonText: 'Aceptar'
                 });
 
+            } else {
+                
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Se produjo un error al intentar ingresar. ' + data.message,
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
             }
-
-        } catch (error) {
-
-            Swal.fire({
-                title: 'Error!',
-                text: 'Se produjo un error al intentar iniciar sesión. Por favor, inténtalo de nuevo.',
-                icon: 'error',
-                confirmButtonText: 'Aceptar'
-            });
 
         }
 
@@ -82,7 +77,7 @@ const Login = () => {
         <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
             <div className="w-full max-w-md bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="p-6 sm:p-8">
-                    <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h2>
+                    <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Ingresar</h2>
                     <form className="space-y-6">
                         <div>
                             <label htmlFor="email" className="text-sm font-medium text-gray-700 block mb-1">

@@ -6,7 +6,7 @@ import { api_url } from '../utils/environment';
 import Swal from 'sweetalert2';
 import moment from 'moment';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendar, faCalendarAlt, faCheckCircle, faClock, faClose, faEdit, faL, faPlus, faSave, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faCalendarAlt, faCheckCircle, faClock, faClose, faEdit, faPlus, faSave, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Dash = () => {
 
@@ -27,7 +27,7 @@ const Dash = () => {
         if (!token) {
             return navigate('/');
         }
-
+        
         fetchTasks();
 
     }, [token, navigate]);

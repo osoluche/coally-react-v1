@@ -1,13 +1,14 @@
-import './App.css';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dash from './pages/Dash';
 
+import './App.css';
+
 function App() {
   return (
 
-    <Router>
+    <BrowserRouter>
 
       <Routes>
         <Route path="/" element={<Login />} />
@@ -15,9 +16,10 @@ function App() {
         <Route path="/dashboard" element={<Dash />} />
       </Routes>
 
-    </Router>
+    </BrowserRouter>
 
   );
+
 }
 
 export default App;
